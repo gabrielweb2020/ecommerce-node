@@ -20,5 +20,5 @@ Route.get('/', () => {
  /**
  * Importa as rotas de Client
  */
-require('./admin')
+require('./client')
 
