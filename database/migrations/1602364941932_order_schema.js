@@ -9,7 +9,7 @@ class OrderSchema extends Schema {
       table.increments()
       table.decimal('total', 12, 2).defaultTo(0.00)
       table.integer('user_id').unsigned()
-      table.enu('status', ['pending', 'cancelled', 'shipped', 'paid', 'finished'])gn
+      table.enu('status', ['pending', 'cancelled', 'shipped', 'paid', 'finished'])
       table.timestamps()
 
       table
