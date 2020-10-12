@@ -4,7 +4,7 @@ const { addHook } = require('@adonisjs/lucid/src/Lucid/Model')
 
 /** @type {typeof import('@adonisjs/lucid/src/Lucid/Model')} */
 const Model = use('Model')
-
+const { str_random } = use('App/Helpers')
 class PasswordReset extends Model {
   static boot() {
     super.boot()
