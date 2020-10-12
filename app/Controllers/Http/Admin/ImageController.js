@@ -1,8 +1,15 @@
 'use strict'
 
+const { manage_single_upload } = require('../../../Helpers')
+const Pagination = require('../../../Middleware/Pagination')
+
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+
+const Image = use('App/Models/Image')
+const { manage_single_upload, manage_multiple_upload } = use('App/Helpers')
+const fs = use('fs')
 
 /**
  * Resourceful controller for interacting with images
@@ -15,21 +22,13 @@ class ImageController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
    */
-  async index ({ request, response, view }) {
-  }
+  async index ({ request, response, pagination }) {
+    const images = await Image.query()
+      .orderBy('id', 'DESC')
+      .paginate(pagination.page, pagination.limit)
 
-  /**
-   * Render a form to be used for creating a new image.
-   * GET images/create
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async create ({ request, response, view }) {
+      return response.send(images)
   }
 
   /**
@@ -41,6 +40,57 @@ class ImageController {
    * @param {Response} ctx.response
    */
   async store ({ request, response }) {
+    try{
+      const fileJar = request.file('images', {
+        types: ['image'],
+        size: '2mb'
+      })
+
+      let images = []
+
+      if(!fileJar.files) {
+        const file = await manage_single_upload(fileJar)
+        if(file.moved()) {
+          const image = await Image.create({
+            path: file.fileName,
+            size: file.size,
+            original_name: file.clientName,
+            extension: file.subtype
+          })
+
+          images.push(image)
+
+          return response.status(201).send({ successes: images, errors: {} })
+        }
+
+        return response.status(400).send({
+          message: 'Não Foi Possível Processar a Imagem No Momento!'
+        })
+      }
+
+      let files = await manage_multiple_upload(fileJar)
+
+      await Promise.all(
+        files.successes.map(async file => {
+          const image = await Image.create({
+            path: file.fileName,
+            size: file.size,
+            original_name: file.clientName,
+            extension: file.subtype
+          })
+          images.push(image)
+        })
+      )
+
+      return response
+        .status(201)
+        .send({ successes: images, errors: files.errors })
+
+    } catch(error) {
+      return response.status(400).send({
+        message: 'Não Foi Possível Processar a Sua Solicitação!'
+      })
+    }
   }
 
   /**
@@ -50,21 +100,10 @@ class ImageController {
    * @param {object} ctx
    * @param {Request} ctx.request
    * @param {Response} ctx.response
-   * @param {View} ctx.view
    */
-  async show ({ params, request, response, view }) {
-  }
-
-  /**
-   * Render a form to update an existing image.
-   * GET images/:id/edit
-   *
-   * @param {object} ctx
-   * @param {Request} ctx.request
-   * @param {Response} ctx.response
-   * @param {View} ctx.view
-   */
-  async edit ({ params, request, response, view }) {
+  async show ({ params: { id }, request, response }) {
+    const image = await Image.findOrFail(id)
+    return response.send(image)
   }
 
   /**
@@ -75,7 +114,18 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params, request, response }) {
+  async update ({ params: { id }, request, response }) {
+    const image = await Image.findOrFail(id)
+    try {
+      image.merge(request.only(['original_name']))
+      await image.save()
+
+      return response.status(200).send(image)
+    } catch (error) {
+      return response.status(400).send({
+        message: 'Não Foi Possível Atualizar a Imagem!'
+      })
+    }
   }
 
   /**
@@ -86,7 +136,22 @@ class ImageController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ params: { id }, request, response }) {
+    const image = await Image.findOrFail(id)
+    try {
+      let filepath = Helpers.publicPath(`uploads/${image.path}`)
+
+      await fs.unlink(filepath, error => {
+        if(!error)
+          await image.delete()
+      })
+
+      return response.status(204).send()
+    } catch (error) {
+      return response.status(400).send({
+        message: 'Não Foi Possível Remover a Imagem!'
+      })
+    }
   }
 }
 
