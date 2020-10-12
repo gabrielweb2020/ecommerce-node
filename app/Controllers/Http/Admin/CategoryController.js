@@ -61,7 +61,7 @@ class CategoryController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show ({ params: { id }, request, response }) {
+  async show ({ params: { id }, response }) {
     const category = await Category.findOrFail(id)
     return response.send(category)
   }
@@ -83,7 +83,7 @@ class CategoryController {
       return response.send(category)
     } catch {
       return response.status(400).send({ message: 'Não Foi Possível Atualizar a Categoria!'})
-    }  
+    }
   }
 
   /**

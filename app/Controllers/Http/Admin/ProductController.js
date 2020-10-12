@@ -19,20 +19,18 @@ class ProductController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index ({ request, response, paginate }) {
-    async index ({ request, response, pagination }) {
-      const name = request.input('name')
-      const query = Product.query()
-      if(name) {
-        query.where('name', 'LIKE', `%${name}%`)
-      }
-  
-      const products = await query.paginate(
-        pagination.page,
-        pagination.limit
-      )
-      return response.send(products)
+  async index ({ request, response, pagination }) {
+    const name = request.input('name')
+    const query = Product.query()
+    if(name) {
+      query.where('name', 'LIKE', `%${name}%`)
     }
+
+    const products = await query.paginate(
+      pagination.page,
+      pagination.limit
+    )
+    return response.send(products)
   }
 
   /**
@@ -63,7 +61,7 @@ class ProductController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show ({ params: { id }, request, response }) {
+  async show ({ params: { id }, response }) {
     const product = await Product.findOrFail(id)
     return response.send(product)
   }
@@ -104,8 +102,6 @@ class ProductController {
     } catch {
       return response.status(500).send({ message: 'Não Foi Possível Remover o Produto!'})
     }
-
-    
   }
 }
 
