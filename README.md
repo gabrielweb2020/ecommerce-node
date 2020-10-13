@@ -1,28 +1,19 @@
-# Adonis API application
+# About
 
-This is the boilerplate for creating an API server in AdonisJs, it comes pre-configured with.
+The e-commerce project was developed with Adonis JS.
 
-1. Bodyparser
-2. Authentication
-3. CORS
-4. Lucid ORM
-5. Migrations and seeds
+## Install
 
-## Setup
+To install the project, run the command `npm install`.
 
-Use the adonis command to install the blueprint
+### BD
 
-```bash
-adonis new yardstick --api-only
-```
+Create a database with the name of `ecommerce-node`
 
-or manually clone the repo and then run `npm install`.
+#### Migrations
 
+Run migrations with the command `adonis migration:run`
 
-### Migrations
+##### Seeds
 
-Run the following command to run startup migrations.
-
-```js
-adonis migration:run
-```
+Populate the database with the command `adonis seed`

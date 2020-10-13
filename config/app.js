@@ -220,7 +220,7 @@ module.exports = {
       driver: 'file',
       name: 'ecommerce-node',
       filename: 'ecommerce-error.log',
-      level: 'info'
+      level: 'error'
     }
   },
 
