@@ -4,30 +4,30 @@ const TransformerAbstract = use('Adonis/Addons/Bumblebee/TransformerAbstract')
 const ImageTransformer = use('App/Transformers/Admin/ImageTransformer')
 
 /**
- * CategoryTransformer class
+ * UserTransformer class
  *
- * @class CategoryTransformer
+ * @class UserTransformer
  * @constructor
  */
-class CategoryTransformer extends TransformerAbstract {
+class UserTransformer extends TransformerAbstract {
   defaultInclude() {
     return ['image']
   }
-
   /**
    * This method is used to transform the data.
    */
   transform (model) {
     return {
       id: model.id,
-      title: model.title,
-      description: model.description
+      name: model.name,
+      surname: model.surname,
+      email: model.email,
     }
   }
 
-  includeImage(category) {
-    return this.item(category.getRelated('image'), ImageTransformer)
+  includeImage(user){
+    return this.item(user.getRelated('image'), ImageTransformer)
   }
 }
 
-module.exports = CategoryTransformer
+module.exports = UserTransformer
