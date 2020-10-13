@@ -1,7 +1,6 @@
 'use strict'
 
 const Pagination = require('../../../Middleware/Pagination')
-const Discount = require('../../../Models/Discount')
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -10,6 +9,9 @@ const Discount = require('../../../Models/Discount')
 const Order = use('App/Models/Order')
 const Database = use('Database')
 const Service = use('App/Services/Order/OrderService')
+const Coupon = use('App/Models/Coupon')
+const Discount = use('App/Models/Discount')
+const Transformer = use('App/Transformers/Admin/OrderTransformer')
 
 /**
  * Resourceful controller for interacting with orders
@@ -23,7 +25,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index ({ request, response, pagination }) {
+  async index ({ request, response, pagination, transform }) {
     const { status, id } = request.input(['status, id'])
     const query = Order.query()
 
@@ -35,10 +37,11 @@ class OrderController {
       query.orWhere('id', 'LIKE', `%${id}%`)
     }
 
-    const orders = await query.paginate(
+    var orders = await query.paginate(
       pagination.page,
       pagination.limit
     )
+    orders = await transform.paginate(orders, Transformer)
     return response.send(orders)
   }
 
@@ -50,11 +53,11 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store ({ request, response, transform }) {
     const trx = await Database.beginTransaction()
     try {
       const { user_id, items, status } = request.all()
-      let order = await Order.create({ user_id, status }, trx)
+      var order = await Order.create({ user_id, status }, trx)
       const service = new Service(order, trx)
 
       if(items && items.length > 0) {
@@ -62,6 +65,7 @@ class OrderController {
       }
 
       await trx.commit()
+      order = await transform.item(order, Transformer)
       return response.status(201).send(order)
     } catch (error) {
       await trx.rollback()
@@ -77,8 +81,9 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show ({ params: { id }, response }) {
-    const order = await Order.findOrFail(id)
+  async show ({ params: { id }, response, transform }) {
+    var order = await Order.findOrFail(id)
+    order = await transform.item(order, Transformer)
     return response.send(order)
   }
 
@@ -92,7 +97,7 @@ class OrderController {
    * @param {Response} ctx.response
    */
   async update ({ params: { id }, request, response }) {
-    const order = await Order.findOrFail(id)
+    var order = await Order.findOrFail(id)
     const trx = await Database.beginTransaction()
 
     try {
@@ -102,6 +107,7 @@ class OrderController {
       await service.updateItems(items)
       await order.save(trx)
       await trx.commit()
+      order = await transform.item(order, Transformer)
       return response.status(200).send(order)
     } catch (error) {
       await trx.rollback()

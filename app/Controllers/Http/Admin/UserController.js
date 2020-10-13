@@ -5,7 +5,9 @@ const Pagination = require('../../../Middleware/Pagination')
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
+
 const User = use('App/Models/User')
+const Transformer = use('App/Transformers/Admin/UserTransformer')
 
 /**
  * Resourceful controller for interacting with users
@@ -19,7 +21,7 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index ({ request, response, pagination }) {
+  async index ({ request, response, pagination, transform }) {
     const name = request.input('name')
     const query = User.query()
     if(name) {
@@ -28,10 +30,11 @@ class UserController {
       query.orWhere('email', 'LIKE', `%${name}%`)
     }
 
-    const users = await query.paginate(
+    var users = await query.paginate(
       pagination.page,
       pagination.limit
     )
+    users = await transform.paginate(users, Transformer)
     return response.send(users)
   }
 
@@ -43,7 +46,7 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async store ({ request, response }) {
+  async store ({ request, response, transform }) {
     try {
       const userData = request.only([
         'name',
@@ -52,7 +55,8 @@ class UserController {
         'password',
         'image_id'
       ])
-      const user = await User.create(userData)
+      var user = await User.create(userData)
+      user = await transform.item(user, Transformer)
       return response.status(201).send(user)
     } catch {
       return response.status(400).send({
@@ -69,8 +73,9 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async show ({ params: { id }, response }) {
-    const user = await User.findOrFail(id)
+  async show ({ params: { id }, response, transform }) {
+    var user = await User.findOrFail(id)
+    user = await transform.item(user, Transformer)
     return response.send(user)
   }
 
@@ -82,8 +87,8 @@ class UserController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params: { id }, request, response }) {
-    const user = await User.findOrFail(id)
+  async update ({ params: { id }, request, response, transform }) {
+    var user = await User.findOrFail(id)
     try {
       const userData = request.only([
         'name',
@@ -94,6 +99,7 @@ class UserController {
       ])
       user.merge(userData)
       await user.save()
+      user = await transform.item(user, Transformer)
       return response.send(user)
     } catch {
       return response.status(400).send({ message: 'Não Foi Possível Atualizar o Usuário!'})
