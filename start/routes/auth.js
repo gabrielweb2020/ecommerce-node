@@ -38,4 +38,6 @@ Route.group(() => {
   Route.put('reset-password', 'AuthController.reset')
     .as('auth.reset')
     .middleware(['guest'])
-}).prefix('v1/auth').namespace('Auth')
+})
+  .prefix('v1/auth')
+  .namespace('Auth')

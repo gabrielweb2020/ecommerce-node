@@ -12,7 +12,8 @@ class ImageTransformer extends TransformerAbstract {
   /**
    * This method is used to transform the data.
    */
-  transform (image) {
+  transform(image) {
+    // toJSON
     image = image.toJSON()
     return {
       id: image.id,

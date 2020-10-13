@@ -1,6 +1,5 @@
 'use strict'
 
-const Pagination = require('../../../Middleware/Pagination')
 
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
@@ -23,18 +22,14 @@ class CouponController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index ({ request, response, pagination, transform }) {
-    const code = request.input.toString('code')
+  async index({ request, response, pagination, transform }) {
+    const code = request.input('code')
     const query = Coupon.query()
 
     if(code) {
       query.where('code', 'LIKE', `%${code}%`)
     }
-
-    var coupons = await query.paginate(
-      pagination.page,
-      pagination.limit
-    )
+    var coupons = await query.paginate(pagination.page, pagination.limit)
     coupons = await transform.paginate(coupons, Transformer)
     return response.send(coupons)
   }
@@ -70,15 +65,15 @@ class CouponController {
       var coupon = await Coupon.create(couponData, trx)
 
       const service = new Service(coupon, trx)
-
-      if(users && users.length > 0) {
+      // insere os relacionamentos no DB
+      if (users && users.length > 0) {
         await service.syncUsers(users)
         can_use_for.client = true
       }
 
-      if(products && products.length > 0) {
-        await service.syncUsers(products)
-        can_use_for.client = true
+      if (products && products.length > 0) {
+        await service.syncProducts(products)
+        can_use_for.product = true
       }
 
       if(can_use_for.product && can_use_for.client) {
@@ -201,7 +196,7 @@ class CouponController {
       await coupon.delete(trx)
       await trx.commit()
       return response.status(204).send()
-    } catch {
+    } catch (error) {
       await trx.rollback()
       return response.status(400).send({ message: 'Não Foi Possível Remover o Cupom!'})
     }

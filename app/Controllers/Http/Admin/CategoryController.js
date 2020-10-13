@@ -1,7 +1,5 @@
 'use strict'
 
-const Pagination = require('../../../Middleware/Pagination')
-
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -27,12 +25,8 @@ class CategoryController {
     if(title) {
       query.where('title', 'LIKE', `%${title}%`)
     }
-
-    var categories = await query.paginate(
-      pagination.page,
-      pagination.limit
-    )
-    categories = await transform(categories, Transformer)
+    var categories = await query.paginate(pagination.page, pagination.limit)
+    categories = await transform.paginate(categories, Transformer)
     return response.send(categories)
   }
 
@@ -50,7 +44,7 @@ class CategoryController {
       var category = await Category.create({ title, description, image_id })
       category = await transform.item(category, Transformer)
       return response.status(201).send(category)
-    } catch {
+    } catch (error) {
       return response.status(400).send({
         message: "Erro ao Processar a Sua Solicitação!"
       })

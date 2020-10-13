@@ -4,11 +4,17 @@
 const Model = use('Model')
 
 class Category extends Model {
+  /**
+   * Relacionamento entre Categoria e Imagem de destaque
+   */
   image() {
     return this.belongsTo('App/Models/Image')
   }
 
-  product() {
+  /**
+   * Relacionamento entre Categoria e Produtos
+   */
+  products() {
     return this.belongsToMany('App/Models/Product')
   }
 }

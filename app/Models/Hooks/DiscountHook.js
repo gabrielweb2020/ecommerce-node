@@ -4,10 +4,11 @@ const Coupon = use('App/Models/Coupon')
 const Order = use('App/Models/Order')
 const Database = use('Database')
 
-const DiscountHook = exports = module.exports = {}
+const DiscountHook = (exports = module.exports = {})
 
-DiscountHook.calculateValues = async model  => {
-  var couponProducts, discountItems = []
+DiscountHook.calculateValues = async model => {
+  var couponProducts,
+    discountItems = []
   model.discount = 0
   const coupon = await Coupon.find(model.coupon_id)
   const order = await Order.find(model.order_id)
@@ -20,37 +21,37 @@ DiscountHook.calculateValues = async model  => {
       discountItems = await Database.from('order_items')
         .where('order_id', model.order_id)
         .whereIn('product_id', couponProducts)
-        if(coupon.type === 'percent') {
-          for(let orderItem of discountItems) {
-            model.discount += (orderItem.subtotal / 100) * coupon.discount
-          }
-        } else if(coupon.type == 'currency') {
-          for(let orderItem of discountItems) {
-            model.discount += coupon.discount * orderItem.quantity
-          }
-        } else {
-          for(let orderItem of discountItems) {
-            model.discount += orderItem.subtotal
-          }
+      if (coupon.type == 'percent') {
+        for (let orderItem of discountItems) {
+          model.discount += (orderitem.subtotal / 100) * coupon.discount
         }
-      break;
+      } else if (coupon.type == 'currency') {
+        for (let orderItem of discountItems) {
+          model.discount += coupon.discount * orderItem.quantity
+        }
+      } else {
+        for (let orderItem of discountItems) {
+          model.discount += orderItem.subtotal
+        }
+      }
+      break
 
     default:
-      if(coupon.type == 'percent') {
+      // client || all
+      if (coupon.type == 'percent') {
         model.discount = (order.subtotal / 100) * coupon.discount
       } else if(coupon.type == 'currency') {
         model.discount = coupon.discount
       } else {
         model.discount = order.subtotal
       }
-
-      break;
+      break
   }
 
   return model
 }
 
-//Decrementa a quantidade de cupons disponíveis
+// decrementa quantidade de cupons disponiveis para uso
 DiscountHook.decrementCoupons = async model => {
   const query = Database.from('coupons')
   if(model.$transaction) {
@@ -59,7 +60,7 @@ DiscountHook.decrementCoupons = async model => {
   await query.where('id', model.coupon_id).decrement('quantity', 1)
 }
 
-//Incrementa a quantidade de cupons disponíveis
+// incrementa a quantidade de cupons disponiveis (quando um desconto é retirado)
 DiscountHook.incrementCoupons = async model => {
   const query = Database.from('coupons')
   if(model.$transaction) {

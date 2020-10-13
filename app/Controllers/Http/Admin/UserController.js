@@ -1,7 +1,5 @@
 'use strict'
 
-const Pagination = require('../../../Middleware/Pagination')
-
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -30,10 +28,7 @@ class UserController {
       query.orWhere('email', 'LIKE', `%${name}%`)
     }
 
-    var users = await query.paginate(
-      pagination.page,
-      pagination.limit
-    )
+    var users = await query.paginate(pagination.page, pagination.limit)
     users = await transform.paginate(users, Transformer)
     return response.send(users)
   }
@@ -58,7 +53,7 @@ class UserController {
       var user = await User.create(userData)
       user = await transform.item(user, Transformer)
       return response.status(201).send(user)
-    } catch {
+    } catch (error) {
       return response.status(400).send({
         message: "Erro ao Processar a Sua Solicitação!"
       })
@@ -119,7 +114,7 @@ class UserController {
     try {
       await user.delete()
       return response.status(204).send()
-    } catch {
+    } catch (error) {
       return response.status(500).send({ message: 'Não Foi Possível Remover o Usuário!'})
     }
   }

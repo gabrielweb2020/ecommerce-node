@@ -5,7 +5,6 @@ const UserTransformer = use('App/Transformers/Admin/UserTransformer')
 const OrderItemTransformer = use('App/Transformers/Admin/OrderItemTransformer')
 const CouponTransformer = use('App/Transformers/Admin/CouponTransformer')
 const DiscountTransformer = use('App/Transformers/Admin/DiscountTransformer')
-
 /**
  * OrderTransformer class
  *
@@ -13,39 +12,43 @@ const DiscountTransformer = use('App/Transformers/Admin/DiscountTransformer')
  * @constructor
  */
 class OrderTransformer extends TransformerAbstract {
-  availableIncludes() {
+  availableInclude() {
     return ['user', 'coupons', 'items', 'discounts']
   }
   /**
    * This method is used to transform the data.
    */
-  transform (order) {
+  transform(order) {
     order = order.toJSON()
     return {
       id: order.id,
       status: order.status,
       total: order.total ? parseFloat(order.total.toFixed(2)) : 0,
       date: order.created_at,
-      qty_items: order.__meta__ && order.__meta__.qty_items ? order.__meta__.qty_items : 0,
-      discount: order.__meta__ && order.__meta__.discount ? order.__meta__.discount : 0,
-      subtotal: order.__meta__ && order.__meta__.subtotal ? order.__meta__.subtotal : 0,
-
+      qty_items:
+        order.__meta__ && order.__meta__.qty_items
+          ? order.__meta__.qty_items
+          : 0,
+      discount:
+        order.__meta__ && order.__meta__.discount ? order.__meta__.discount : 0,
+      subtotal:
+        order.__meta__ && order.__meta__.subtotal ? order.__meta__.subtotal : 0
     }
   }
 
-  includeUser(order){
+  includeUser(order) {
     return this.item(order.getRelated('user'), UserTransformer)
   }
 
-  includeItems(order){
+  includeItems(order) {
     return this.collection(order.getRelated('items'), OrderItemTransformer)
   }
 
-  includeCoupons(order){
+  includeCoupons(order) {
     return this.collection(order.getRelated('coupons'), CouponTransformer)
   }
 
-  includeDiscounts(order){
+  includeDiscounts(order) {
     return this.collection(order.getRelated('discounts'), DiscountTransformer)
   }
 }

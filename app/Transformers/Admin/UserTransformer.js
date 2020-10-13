@@ -2,7 +2,6 @@
 
 const TransformerAbstract = use('Adonis/Addons/Bumblebee/TransformerAbstract')
 const ImageTransformer = use('App/Transformers/Admin/ImageTransformer')
-
 /**
  * UserTransformer class
  *
@@ -16,16 +15,16 @@ class UserTransformer extends TransformerAbstract {
   /**
    * This method is used to transform the data.
    */
-  transform (model) {
+  transform(model) {
     return {
       id: model.id,
       name: model.name,
       surname: model.surname,
-      email: model.email,
+      email: model.email
     }
   }
 
-  includeImage(user){
+  includeImage(user) {
     return this.item(user.getRelated('image'), ImageTransformer)
   }
 }

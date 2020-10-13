@@ -1,12 +1,12 @@
 'use strict'
 
-class Register {
-  get rules () {
+class AuthRegister {
+  get rules() {
     return {
       name: 'required',
       surname: 'required',
       email: 'required|email|unique:users,email',
-      password: 'required|confirmed',
+      password: 'required|confirmed'
     }
   }
 
@@ -24,4 +24,4 @@ class Register {
   }
 }
 
-module.exports = Register
+module.exports = AuthRegister

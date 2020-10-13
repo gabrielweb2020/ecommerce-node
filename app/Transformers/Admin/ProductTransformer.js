@@ -16,17 +16,17 @@ class ProductTransformer extends TransformerAbstract {
   /**
    * This method is used to transform the data.
    */
-  transform (model) {
+  transform(model) {
     return {
       id: model.id,
       name: model.name,
       description: model.description,
-      price: model.price,
+      price: model.price
     }
   }
 
-  includeImage(product){
-    return this.item(product.getRelated('image'), ImageTransformer)
+  includeImage(model) {
+    return this.item(model.getRelated('image'), ImageTransformer)
   }
 }
 

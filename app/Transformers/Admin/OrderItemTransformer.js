@@ -2,7 +2,6 @@
 
 const TransformerAbstract = use('Adonis/Addons/Bumblebee/TransformerAbstract')
 const ProductTransformer = use('App/Transformers/Admin/ProductTransformer')
-
 /**
  * OrderItemTransformer class
  *
@@ -16,7 +15,7 @@ class OrderItemTransformer extends TransformerAbstract {
   /**
    * This method is used to transform the data.
    */
-  transform (model) {
+  transform(model) {
     return {
       id: model.id,
       subtotal: model.subtotal,
@@ -24,7 +23,7 @@ class OrderItemTransformer extends TransformerAbstract {
     }
   }
 
-  includeProduct(orderItem){
+  includeProduct(orderItem) {
     return this.item(orderItem.getRelated('product'), ProductTransformer)
   }
 }

@@ -1,7 +1,5 @@
 'use strict'
 
-const Pagination = require('../../../Middleware/Pagination')
-
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -25,8 +23,8 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async index ({ request, response, pagination, transform }) {
-    const { status, id } = request.input(['status, id'])
+  async index({ request, response, pagination, transform }) {
+    const { status, id } = request.only(['status', 'id '])
     const query = Order.query()
 
     if(status && id) {
@@ -34,13 +32,10 @@ class OrderController {
     } else if (status) {
       query.where('status', status)
     } else if (id) {
-      query.orWhere('id', 'LIKE', `%${id}%`)
+      query.where('id', 'LIKE', `%${id}%`)
     }
 
-    var orders = await query.paginate(
-      pagination.page,
-      pagination.limit
-    )
+    var orders = await query.paginate(pagination.page, pagination.limit)
     orders = await transform.paginate(orders, Transformer)
     return response.send(orders)
   }
@@ -99,7 +94,7 @@ class OrderController {
    * @param {Request} ctx.request
    * @param {Response} ctx.response
    */
-  async update ({ params: { id }, request, response }) {
+  async update({ params: { id }, request, response, transform }) {
     var order = await Order.findOrFail(id)
     const trx = await Database.beginTransaction()
 
@@ -137,15 +132,15 @@ class OrderController {
       await order.delete(trx)
       await trx.commit()
       return response.status(204).send()
-    } catch {
+    } catch (error) {
       await trx.rollback()
       return response.status(400).send({ message: 'Não Foi Possível Remover o Pedido!'})
     }
   }
 
-  async applyDiscount ({ params: { id }, request, response, trasnform }) {
+  async applyDiscount({ params: { id }, request, response, transform }) {
     const { code } = request.all()
-    const coupon = await coupon.findByOrFail('code', code.toUpperCase())
+    const coupon = await Coupon.findByOrFail('code', code.toUpperCase())
     var order = await Order.findOrFail(id)
     var discount,
       info = {}
@@ -154,29 +149,30 @@ class OrderController {
         const canAddDiscount = await service.canApplyDiscount(coupon)
         const orderDiscounts = await order.coupons().getCount()
 
-        const canApplyToOrder = orderDiscounts < 1 || (orderDiscounts >= 1 && coupon.recursive)
-        if(canAddDiscount && canApplyToOrder) {
-          discount = await Discount.findOrCreate({
-            order_id: order.id,
-            coupon_id: coupon.id
-          })
-          info.message = 'Cupom Aplicado Com Sucesso!'
-          info.success = true
-        } else {
-          info.message = 'Não Foi Possível Aplicar Este Cupom!'
-          info.success = false
-        }
-        order = await transform
-          .include('items,user,discounts,coupons')
-          .item(order, Transformer)
-        return response.send({ order, info })
-      } catch (error) {
-        return response.status(400).send({ message: 'Erro ao Aplicar o Cupom!'})
+      const cannApplyToOrder =
+        orderDiscounts < 1 || (orderDiscounts >= 1 && coupon.recursive)
+      if (canAddDiscount && cannApplyToOrder) {
+        discount = await Discount.findOrCreate({
+          order_id: order.id,
+          coupon_id: coupon.id
+        })
+        info.message = 'Cupom aplicado com sucesso!'
+        info.success = true
+      } else {
+        info.message = 'Não foi possível aplicar este cupom!'
+        info.success = false
       }
+      order = await transform
+        .include('items,user,discounts,coupons')
+        .item(order, Transformer)
+      return response.send({ order, info })
+    } catch (error) {
+      return response.status(400).send({ message: 'Erro ao aplicar o cupom!' })
+    }
   }
 
-  async removeDiscount ({ params: { id }, request, response }) {
-    const { discount_id } =request.all()
+  async removeDiscount({ request, response }) {
+    const { discount_id } = request.all()
     const discount = await Discount.findOrFail(discount_id)
     await discount.delete()
     return response.status(204).send()

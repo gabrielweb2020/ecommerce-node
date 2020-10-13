@@ -25,8 +25,8 @@ class CategoryTransformer extends TransformerAbstract {
     }
   }
 
-  includeImage(category) {
-    return this.item(category.getRelated('image'), ImageTransformer)
+  includeImage(model) {
+    return this.item(model.getRelated('image'), ImageTransformer)
   }
 }
 

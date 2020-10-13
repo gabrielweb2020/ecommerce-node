@@ -1,12 +1,13 @@
 'use strict'
 
-class StoreCategory {
-  get rules () {
+class AdminStoreCategory {
+  get rules() {
     return {
+      // validation rules
       title: 'required',
       description: 'required'
     }
   }
 }
 
-module.exports = StoreCategory
+module.exports = AdminStoreCategory

@@ -14,11 +14,18 @@ class User extends Model {
      * A hook to hash the user password before saving
      * it to the database.
      */
-    this.addHook('beforeSave', async (userInstance) => {
+    this.addHook('beforeSave', async userInstance => {
       if (userInstance.dirty.password) {
         userInstance.password = await Hash.make(userInstance.password)
       }
     })
+  }
+
+  /**
+   * Oculta os campos definidos no retorno, das queries no DB
+   */
+  static get hidden() {
+    return ['password']
   }
 
   static get traits () {

@@ -1,9 +1,9 @@
 'use strict'
 
-const { Database } = require("sqlite3")
+const Database = use('Database')
 
 class OrderService {
-  constructor(model, trx = false) {
+  constructor(model, trx = fasle) {
     this.model = model
     this.trx = trx
   }
@@ -28,18 +28,26 @@ class OrderService {
         .whereNotIn('id', items.map(item => item.id))
         .delete(this.trx)
 
-        await Promise.all(currentItems.rows.map(async item => {
-          item.fill(items.find(n => n.id === item.id))
-          await item.save(this.trx)
-        }))
+    // Atualiza os valore e quantidades
+    await Promise.all(
+      currentItems.rows.map(async item => {
+        item.fill(items.find(n => n.id === item.id))
+        await item.save(this.trx)
+      })
+    )
   }
 
   async canApplyDiscount(coupon) {
+    // verifica a validade por data
     const now = new Date().getTime()
-    if(now > coupon.valid_from.getTime() ||(typeof coupon.valid_until == 'object' && coupon.valid_until.getTime() < now)) {
-      // Verifica se o cupom já entrou em validade
-      // Verifica se há uma data de expiração
-      // Se houver data de expiração, verifica se o cupom expirou
+    if (
+      now > coupon.valid_from.getTime() ||
+      (typeof coupon.valid_until == 'object' &&
+        coupon.valid_until.getTime() < now)
+    ) {
+      // verifica se o cupom já entrou em validade
+      // verifica se há uma data de expiração
+      // se houver data de expiração, verifica se o cupom expirou
       return false
     }
 
@@ -57,16 +65,20 @@ class OrderService {
       Array.isArray(couponClients) &&
       couponClients < 1
     ) {
+      /**
+       * Caso não esteja associado a cliente ou produto especifico, é de uso livre
+       */
       return true
     }
 
-    let isAssociatedToProducts, isAssociatedToClients = false
+    let isAssociatedToProducts,
+      isAssociatedToClients = false
 
-    if(Array.isArray(couponProducts) && couponProducts.length > 0){
+    if (Array.isArray(couponProducts) && couponProducts.length > 0) {
       isAssociatedToProducts = true
     }
 
-    if(Array.isArray(couponClients) && couponClients.length > 0){
+    if (Array.isArray(couponClients) && couponClients.length > 0) {
       isAssociatedToClients = true
     }
 
@@ -75,19 +87,27 @@ class OrderService {
       .whereIn('product_id', couponProducts)
       .pluck('product_id')
 
-    //Cupom associado a clientes e a produtos
-    if(isAssociatedToClients && isAssociatedToProducts) {
+    /**
+     * Caso de uso 1 - O cupom está associado a clientes & produtos
+     */
+    if (isAssociatedToClients && isAssociatedToProducts) {
       const clientMatch = couponClients.find(
         client => client === this.model.user_id
       )
 
-      if(clientMatch && Array.isArray(productsMatch) && productsMatch.length > 0) {
+      if (
+        clientMatch &&
+        Array.isArray(productsMatch) &&
+        productsMatch.length > 0
+      ) {
         return true
       }
     }
 
-    //Cupom associado apenas a produtos
-    if(
+    /**
+     * Caso de uso 2 - o cupom está associado apenas a produto
+     */
+    if (
       isAssociatedToProducts &&
       Array.isArray(productsMatch) &&
       productsMatch.length > 0
@@ -95,8 +115,11 @@ class OrderService {
       return true
     }
 
-    //Cupom associado apenas a clientes
-    if(
+    /**
+     * Caso de uso 3 - O cupom está associado a 1 ou mais clientes (e nenhum produto)
+     *
+     */
+    if (
       isAssociatedToClients &&
       Array.isArray(couponClients) &&
       couponClients.length > 0
@@ -107,9 +130,14 @@ class OrderService {
       }
     }
 
-    //Cupom não disponível para uso
+    /**
+     * Caso nenhuma das verificações acima deem positivas
+     * então o cupom está associado a clientes ou produtos ou os dois
+     * porém nenhum dos produtos deste pedido está aelegível ao desconto
+     * e o cliente que fez a compra também não poderá utilizar este cupom
+     */
     return false
   }
 }
 
-module.exports = CouponService
+module.exports = OrderService

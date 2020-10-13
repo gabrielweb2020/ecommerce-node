@@ -18,7 +18,7 @@ class RoleSeeder {
     await Role.create({
       name: 'Admin',
       slug: 'admin',
-      description: 'Administrador de Sistema'
+      description: 'Administrador do Sistema'
     })
 
     // Cria o Cargo de Gerente

@@ -4,8 +4,7 @@
 const Model = use('Model')
 
 class Order extends Model {
-
-  static boot(){
+  static boot() {
     super.boot()
 
     this.addHook('afterFind', 'OrderHook.updateValues')

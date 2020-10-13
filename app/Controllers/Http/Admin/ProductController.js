@@ -1,7 +1,5 @@
 'use strict'
 
-const Pagination = require('../../../Middleware/Pagination')
-
 /** @typedef {import('@adonisjs/framework/src/Request')} Request */
 /** @typedef {import('@adonisjs/framework/src/Response')} Response */
 /** @typedef {import('@adonisjs/framework/src/View')} View */
@@ -27,11 +25,7 @@ class ProductController {
     if(name) {
       query.where('name', 'LIKE', `%${name}%`)
     }
-
-    var products = await query.paginate(
-      pagination.page,
-      pagination.limit
-    )
+    var products = await query.paginate(pagination.page, pagination.limit)
     products = await transform.paginate(products, Transformer)
     return response.send(products)
   }
@@ -47,10 +41,15 @@ class ProductController {
   async store ({ request, response, transform }) {
     try {
       const { name, description, price, image_id } = request.all()
-      const product = await Product.create({ name, description, price, image_id })
+      var product = await Product.create({
+        name,
+        description,
+        price,
+        image_id
+      })
       product = await transform.item(product, Transformer)
       return response.status(201).send(product)
-    } catch {
+    } catch (error) {
       return response.status(400).send({
         message: "Erro ao Processar a Sua Solicitação!"
       })
@@ -87,7 +86,7 @@ class ProductController {
       await product.save()
       product = await transform.item(product, Transformer)
       return response.send(product)
-    } catch {
+    } catch (error) {
       return response.status(400).send({ message: 'Não Foi Possível Atualizar o Produto!'})
     }
   }
@@ -105,7 +104,7 @@ class ProductController {
     try {
       await product.delete()
       return response.status(204).send()
-    } catch {
+    } catch (error) {
       return response.status(500).send({ message: 'Não Foi Possível Remover o Produto!'})
     }
   }

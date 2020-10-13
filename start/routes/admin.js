@@ -30,11 +30,8 @@ Route.group(() => {
   Route.delete('orders/:id/discount', 'OrderController.removeDiscount')
   Route.resource('orders', 'OrderController')
     .apiOnly()
-    .validator(
-      new Map([
-        [['orders.store'], ['Admin/StoreOrder']],
-    ])
-  )
+    .validator(new Map([[['orders.store'], ['Admin/StoreOrder']]]))
+
   /**
    * Rotas de Imagens
    */
@@ -55,5 +52,7 @@ Route.group(() => {
    * Rota da Dashboard
    */
   Route.get('dashboard', 'DashboardController.index').as('dashboard')
-
-}).prefix('v1/admin').namespace('Admin').middleware(['auth', 'is:(admin || manager)'])
+})
+  .prefix('v1/admin')
+  .namespace('Admin')
+  .middleware(['auth', 'is:( admin || manager )'])
